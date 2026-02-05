@@ -1,0 +1,176 @@
+# ==========================================
+# BANCO DE DADOS
+# ==========================================
+tabela_precos = {
+    "F40": 2000000.0,
+    "Panamera": 1500000.0,
+    "X6": 1000000.0,
+    "Senna": 3000000.0, 
+    "Chiron": 4000000.0
+}
+
+carros_aluguel = [
+    ("Ferrari", "F40"),
+    ("Mclaren", "Senna"),
+    ("Bugatti", "Chiron")
+]
+
+carros_vendas = [
+    ("F40", "Ferrari"),
+    ("Panamera","Porsche"),
+    ("X6","Bmw"),
+    ("Senna","Mclaren"),
+    ("Chiron","Bugatti")
+]
+
+empresa_fundos = {"saldo": 1000000000.0}
+cliente_dados = {"nome": "", "telefone": "", "saldo": 0.0}
+
+# ==========================================
+# MODO VENDEDOR
+# ==========================================
+def vendedor():
+
+    def comprar_carro_cliente():
+        print("\n--- AVALIAÇÃO DE COMPRA ---")
+        marca = input("Qual a marca do carro?: ")
+        modelo = input("Qual o modelo do carro?: ")
+
+        if modelo not in tabela_precos:
+            print("\nEste modelo não está na nossa tabela FIPE.")
+            return
+    
+        valor_referencia = tabela_precos[modelo]
+        proposta = valor_referencia * 0.88 
+
+        if empresa_fundos["saldo"] < proposta:
+            print("\nA empresa não tem saldo suficiente para comprar este carro agora.")
+            return
+        
+        print(f"Valor de tabela: R$ {valor_referencia:,.2f}")
+        print(f"Nossa oferta: R$ {proposta:,.2f}")
+
+        confirmacao = input("\nO cliente aceitou o valor? (s/n): ").lower()
+
+        if confirmacao == 's':
+            empresa_fundos["saldo"] -= proposta
+            cliente_dados["saldo"] += proposta
+            carros_vendas.append((modelo, marca))
+            print("\nFechado! O carro foi para o estoque e o dinheiro foi pago ao cliente.")
+        else:
+            print("\nO cliente não aceitou a oferta.")
+
+    def adicionar_carro_estoque():
+        print("\n--- CADASTRAR CARRO NO ESTOQUE ---")
+        modelo = input("Modelo: ")
+        marca = input("Marca: ")
+        
+        try:
+            preco = float(input(f"Qual será o preço de tabela do {modelo}?: R$ "))
+            tabela_precos[modelo] = preco
+            carros_vendas.append((modelo, marca))
+            print(f"\nO {modelo} foi adicionado ao estoque com sucesso!")
+        except ValueError:
+            print("\nErro no valor. Use apenas números.")
+
+    def empresa_saldo():
+        print(f"\nSaldo em caixa: R$ {empresa_fundos['saldo']:,.2f}")
+
+    def menu_vendedor():
+        while True:
+            print("\n--- MENU DO VENDEDOR ---")
+            print("1. Comprar carro de cliente")
+            print("2. Adicionar novo carro ao estoque")
+            print("3. Ver saldo da empresa")
+            print("4. Voltar")
+            
+            try:
+                op = int(input("\nO que deseja fazer?: "))
+                
+                if 1 <= op <= 4:
+                    match op:
+                        case 1: comprar_carro_cliente()
+                        case 2: adicionar_carro_estoque()
+                        case 3: empresa_saldo()
+                        case 4: break
+                else:
+                    print("\nOpção inválida. Escolha de 1 a 4.")
+            except ValueError:
+                print("\nDigite apenas o número da opção.")
+
+    menu_vendedor()
+
+# ==========================================
+# MODO CLIENTE
+# ==========================================
+def cliente():
+    print("\n--- CADASTRO DE CLIENTE ---")
+    nome = input("Digite seu nome: ")
+
+    while True:
+        try:
+            tel = input("Digite seu telefone: ")
+            if not tel.isdigit(): raise ValueError 
+            saldo_ini = float(input("Quanto você tem de saldo?: R$ "))
+            
+            cliente_dados["nome"] = nome
+            cliente_dados["telefone"] = tel
+            cliente_dados["saldo"] = saldo_ini
+            break 
+        except ValueError:
+            print("\nDados incorretos. Tente de novo.")
+
+    def menu_cliente():
+        while True:
+            print(f"\n--- BEM-VINDO, {cliente_dados['nome'].upper()} ---")
+            print(f"Seu saldo: R$ {cliente_dados['saldo']:,.2f}")
+            print("1. Comprar um carro")
+            print("2. Alugar um carro")
+            print("3. Sair")
+            
+            opcao = input("\nEscolha uma opção: ")
+
+            match opcao:
+                case "1":
+                    print("\n--- CARROS PARA VENDA ---")
+                    for i, carro in enumerate(carros_vendas):
+                        print(f"{i+1}. {carro[0]} ({carro[1]})")
+                case "2":
+                    print("\n--- CARROS PARA ALUGUEL ---")
+                    for i, carro in enumerate(carros_aluguel):
+                        print(f"{i+1}. {carro[1]} ({carro[0]})")
+                case "3":
+                    break
+                case _:
+                    print("\nOpção inválida.")
+    
+    menu_cliente()
+
+# ==========================================
+# ENTRADA DO SISTEMA
+# ==========================================
+while True:
+    try:
+        print("\n" + "="*25)
+        print("  CONCESSIONÁRIA")
+        print("="*25)
+        print("1. Entrar como Vendedor")
+        print("2. Entrar como Cliente")
+        print("0. Sair")
+        
+        escolha = int(input("\nComo deseja entrar?: "))
+        
+        if escolha == 0:
+            print("\nSaindo...")
+            break
+            
+        match escolha:
+            case 1:
+                vendedor()
+            case 2:
+                cliente()
+            case _:
+                print("\nNúmero inválido.")
+
+    except ValueError:
+        print("\nPor favor, digite 1, 2 ou 0.")
