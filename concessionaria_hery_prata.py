@@ -1,173 +1,182 @@
-#CADASTRO DO CLIENTE
+# ==========================================
+# SISTEMA DE CONCESSIONÁRIA 2.0
+# ==========================================
 
-print("Iniciando cadastro na concessioária.")
+print("--- Iniciando Cadastro Na Concessionária ---")
 
-cliente = {
+# Cadastro inicial com validação robusta
+nome = input("Digite o seu nome: ")
 
-"nome": input("Digite o seu nome: "),
-"telefone": input("Digite o seu telefone: "),
-"saldo": float(input("Digite o seu saldo inicial: ")),
+while True:
+    try:
+        telefone = input("Digite seu numero de telefone (apenas números): ")
+        # Validação manual: Se não for dígito, forçamos um erro
+        if not telefone.isdigit():
+            raise ValueError 
+        
+        saldo = float(input("Digite o seu saldo inicial: R$ "))
+        
+        # O dicionário só é criado se as entradas acima forem válidas
+        cliente = {
+            "nome": nome,
+            "telefone": telefone,
+            "saldo": saldo,
+        }
+        break # Sai do loop de cadastro
 
-}
+    except ValueError:
+        print("\n[ERRO] Entrada inválida! Certifique-se de:")
+        print("- Digitar apenas números no telefone.")
+        print("- Usar números (e ponto para centavos) no saldo.")
+        print("Vamos tentar novamente...\n")
 
-#Dicionario com os modelos e o valor fipe
+# Banco de dados do sistema
 tabela_precos = {
-"F40": 2000000.0,
-"Panamera": 1500000.0,
-"X6": 1000000.0,
-"Sennna": 3000000.0,
-"Chiron": 4000000.0
+    "F40": 2000000.0,
+    "Panamera": 1500000.0,
+    "X6": 1000000.0,
+    "Senna": 3000000.0, 
+    "Chiron": 4000000.0
 }
 
-#lista de tuplas
 carros_aluguel = [
-("Ferrari", "F40"),
-("Mclaren", "Senna"),
-("Bugatti", "Chiron")
+    ("Ferrari", "F40"),
+    ("Mclaren", "Senna"),
+    ("Bugatti", "Chiron")
 ]
 
 carros_vendas = [
-("F40", "Ferrari"),
-("Panamera","Porche"),
-("X6","Bmw"),
-("Senna","Mclaren"),
-("Chiron","Bugatti")
+    ("F40", "Ferrari"),
+    ("Panamera","Porsche"),
+    ("X6","Bmw"),
+    ("Senna","Mclaren"),
+    ("Chiron","Bugatti")
 ]
 
-#Copia e cola: veículo, Automóveis, Você, Disponíveis.
+# --- FUNÇÕES DO SISTEMA ---
+
 def vender_carro():
-    print("--- VENDA DE VEÍCULOS ---")
-    
-    marca = input("Digite a marca que você deseja: ")
-    modelo = input("Digite o modelo da marca que você escolheu: ")
-    
+    print("\n--- VENDA DE VEÍCULOS ---")
+    marca = input("Digite a marca do seu carro: ")
+    modelo = input("Digite o modelo: ")
 
     if modelo not in tabela_precos:
-          print("A marca não esta presente em nossa lista")
-          return
-  
-    #escolha = modelo
-    valor_referencia = tabela_precos[modelo]
-    proposta = valor_referencia*0.88 #paga 12 a menos do valor de referência
-    
-    print(f"Valor referencial: {valor_referencia:.2f}")
-    print(f"Prosposta da concessionaria: {proposta:.2f}")
-
-
-    confirmacao = input("Você aceita a prosposta? (s) ou (n): ")
-
-    if confirmacao == "s":
-        cliente ["saldo"] += proposta
-        print("Venda realizada com sucesso!")
-
-        carros_vendas.append((modelo, marca))
-    elif cliente["saldo"] < proposta:
-        print("Valor em saldo insuficiente. Tente buscar por outro modelo.")
+        print("[AVISO] Este modelo não consta em nossa tabela FIPE.")
         return
+  
+    valor_referencia = tabela_precos[modelo]
+    proposta = valor_referencia * 0.88 
+    
+    print(f"Valor de mercado: R$ {valor_referencia:,.2f}")
+    print(f"Nossa proposta de compra: R$ {proposta:,.2f}")
+
+    confirmacao = input("Aceita a proposta? (s/n): ").lower()
+
+    if confirmacao == 's':
+        cliente["saldo"] += proposta
+        carros_vendas.append((modelo, marca))
+        print("Venda concluída! O valor foi adicionado ao seu saldo.")
     else:
-        print("Venda cancelada. Retornando para o menu.")
+        print("Venda cancelada.")
 
 def alugar_carro():
-    print("--- ALUGUE DE VEÍCULOS ---")
+    print("\n--- ALUGUEL DE VEÍCULOS ---")
     if not carros_aluguel:
-        print("Não a veículo disponivel para aluguel.")
+        print("Desculpe, não há veículos disponíveis para aluguel.")
         return
     
-    print("\n--- Veículos Disponíveis ---")
-    print("\ncarros disponíveis:")
     for i, carro in enumerate(carros_aluguel):
-     print(f"{i + 1} - {carro[0]} ({carro[1]})")
+        print(f"{i + 1} - {carro[0]} ({carro[1]})")
     
-    escolha = int(input("Escolha o numero correspondente ao carrro do seu interrese: ")) -1 
+    # Blindagem da escolha do veículo
+    while True:
+        try:
+            escolha = int(input("Escolha o número do carro: ")) - 1 
+            if 0 <= escolha < len(carros_aluguel):
+                break
+            print("[ERRO] Esse número não está na lista.")
+        except ValueError:
+            print("[ERRO] Digite apenas o número correspondente.")
+                 
+    # Blindagem da quantidade de dias
+    while True:
+        try:
+            dias = int(input("Quantos dias de aluguel? "))
+            if dias > 0:
+                break
+            print("[ERRO] A quantidade de dias deve ser maior que zero.")
+        except ValueError:
+            print("[ERRO] Digite um número inteiro para os dias.")
     
-    if escolha < 0 or escolha >= len(carros_aluguel):
-        print("Opção invalida.")
-    
-    dias = int(input("Quantos dias você gostaria de alugar o carro? "))
-    
-    valor_final = dias*5
+    custo_total = dias * 1000.0
+    print(f"Custo total: R$ {custo_total:,.2f} | Verificando saldo...")
 
-    print(f"O valor total do aluguel é: R$ {valor_final:.2f}")
-
-    print("Verificando seu saldo...")
-
-    if cliente["saldo"] < valor_final:
-        print("Valor insuficiente. Tente buscar outro modelo ou diminuir a quantidade dias.")
+    if cliente["saldo"] < custo_total:
+        print("[NEGADO] Saldo insuficiente para este aluguel.")
         return
     
-    confimarcao = input("Saldo suficientel, gostaria de alugar o Automóvel: (s) ou (n): ")
-    if confimarcao == "s":
-        cliente["saldo"] -= valor_final
-        print(f"Transação concluida. Você escolheu: {carro[escolha]}")
-        carro = carros_aluguel.pop(escolha)#O pop é a ação de remover o item com a ação de obter o item em uma única linha.
-    else:
-        print("Transação cancelada.")
-        return
-    
+    if input("Confirmar locação? (s/n): ").lower() == 's':
+        cliente["saldo"] -= custo_total
+        carro_removido = carros_aluguel.pop(escolha)
+        print(f"Sucesso! Você alugou o {carro_removido[1]}. Aproveite!")
 
 def comprar_carro():
-    print("--- COMPRAR DE VEÍCULOS ---")
-    print("Automóveis disponiveis.")
+    print("\n--- COMPRA DE VEÍCULOS ---")
+    if not carros_vendas:
+        print("Estoque vazio.")
+        return
 
     for i, carro in enumerate(carros_vendas):
-     print(f"{i + 1} - {carro[0]} ({carro[1]})")
+        print(f"{i + 1} - {carro[0]} ({carro[1]})")
+
+    # Blindagem da escolha do veículo
+    while True:
+        try:
+            escolha = int(input("Digite o número do veículo desejado: ")) - 1
+            if 0 <= escolha < len(carros_vendas):
+                break
+            print("[ERRO] Opção fora do intervalo da lista.")
+        except ValueError:
+            print("[ERRO] Entrada inválida. Use apenas números.")
+
+    modelo_escolhido = carros_vendas[escolha][0]
+    preco = tabela_precos[modelo_escolhido] * 1.25 # Margem de lucro da loja
+
+    print(f"Preço de venda: R$ {preco:,.2f}")
     
-    escolha = int(input("Digite o numero do veículo de seu interrese: ")) - 1
-
-    if escolha < 0 or escolha >= len(carros_vendas):
-        print("Opção inválida.")
-        return
-
-    modelo = carros_vendas[escolha][0]
-
-    if modelo not in tabela_precos:
-        print("Preço não encontrado para este modelo.")
-        return
-
-    preco_base = tabela_precos[modelo]
-    valor_proposta = preco_base * 1.25 
-
-    aceita_compra = input(f"A valor do veículo é: {valor_proposta}. Gostaria de finalizar a compra? (s)/(n): ")
-
-    if aceita_compra == "s":
-        print("Verificando o seu saldo...")
-        
-        if cliente["saldo"] < valor_proposta:
-            print("Saldo insuficiente.")
-            return
+    if input("Deseja finalizar a compra? (s/n): ").lower() == 's':
+        if cliente["saldo"] >= preco:
+            cliente["saldo"] -= preco
+            carros_vendas.pop(escolha)
+            print("Parabéns! Veículo adquirido com sucesso.")
         else:
-         print("Saldo Suficiente, compra realizada com sucesso.")
-         return
+            print("[NEGADO] Saldo insuficiente.")
     else:
-        print("Compra canceladada.")
-        return
-    
-#Menu Principal
-def menu():
-    print("--- SEJA BEM VINDO, A NOSSA CONCESSIONARIA. ---")
-    print("1 - Vender Carro")
-    print("2 - Compra Carro")
-    print("3 - Alugar Carro")
-    print("4 - Ver saldo")
-    print("5 - sair")
+        print("Compra cancelada.")
 
+def exibir_menu():
+    print("\n" + "="*30)
+    print("      MENU CONCESSIONÁRIA")
+    print("="*30)
+    print("1. Vender meu carro")
+    print("2. Comprar um carro")
+    print("3. Alugar um carro")
+    print("4. Ver meu saldo")
+    print("5. Sair do sistema")
+    return input("\nEscolha uma opção: ")
+
+# --- LOOP PRINCIPAL ---
 while True:
-    menu()
-
-    opcao = input("Escolha um opção: ")
+    opcao = exibir_menu()
 
     match opcao:
-        case "1":
-            vender_carro()
-        case "2":
-            comprar_carro()
-        case "3":
-            alugar_carro()
-        case "4":
-            print(f"O saldo disponivel: R${cliente['saldo']:.2f}")
+        case "1": vender_carro()
+        case "2": comprar_carro()
+        case "3": alugar_carro()
+        case "4": print(f"\nSaldo Atual: R$ {cliente['saldo']:,.2f}")
         case "5":
-            print("Encerrando sistema.")
+            print("Obrigado por utilizar nossos serviços. Até logo!")
             break
         case _:
-            print("Opção invalida. Tente novamente.")
+            print("[AVISO] Opção inválida. Tente novamente.")
 
